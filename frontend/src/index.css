@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900;
+  }
+}
+
+@layer components {
+  .highlight-yellow {
+    @apply bg-yellow-200;
+  }
+  .highlight-green {
+    @apply bg-green-200;
+  }
+  .highlight-blue {
+    @apply bg-blue-200;
+  }
+  .highlight-red {
+    @apply bg-red-200;
+  }
+}
