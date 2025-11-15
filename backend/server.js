@@ -12,17 +12,47 @@ const app = express();
 const server = http.createServer(app);
 
 // Set up Socket.IO with CORS (so frontend can connect)
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'];
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    origin: (origin, callback) => {
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true
   }
 });
+
+const validateHighlight = (data) => {
+    if (!data.studyId || typeof data.studyId !== 'string') throw new Error('Invalid studyId');
+    if (!data.text || data.text.length > 500) throw new Error('Invalid text');
+    if (!['yellow', 'green', 'blue', 'red'].includes(data.color)) throw new Error('Invalid color');
+  };
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+
+// backend/server.js
+const { verifyToken } = require('./middleware/auth');
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error('Authentication failed'));
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.data.userId = decoded.userId;
+    socket.data.userRole = decoded.role;
+    next();
+  } catch (err) {
+    next(new Error('Invalid token'));
+  }
+});
 // ============================================
 // BASIC ROUTES (Test to make sure it's working)
 // ============================================
@@ -50,9 +80,12 @@ io.on('connection', (socket) => {
 
   // When teacher highlights text
   socket.on('highlight-text', (data) => {
-    // Broadcast to everyone in this study
-    io.to(`study-${data.studyId}`).emit('highlight-updated', data);
-    console.log(`Highlight sent to study-${data.studyId}:`, data);
+    try {
+      validateHighlight(data);
+      io.to(`study-${data.studyId}`).emit('highlight-updated', data);
+    } catch (err) {
+      socket.emit('error', err.message);
+    }
   });
 
   // When someone disconnects
