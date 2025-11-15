@@ -3,6 +3,9 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('./utils/logger');
+
 require('dotenv').config();
 
 // Create Express app
@@ -39,6 +42,8 @@ app.use(express.json());
 
 // backend/server.js
 const { verifyToken } = require('./middleware/auth');
+const { validateHighlight } = require('./validators/highlight');
+
 
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
@@ -80,12 +85,17 @@ io.on('connection', (socket) => {
 
   // When teacher highlights text
   socket.on('highlight-text', (data) => {
-    try {
-      validateHighlight(data);
-      io.to(`study-${data.studyId}`).emit('highlight-updated', data);
-    } catch (err) {
-      socket.emit('error', err.message);
+    const { error, value } = validateHighlight(data);
+    
+    if (error) {
+      return socket.emit('error', { 
+        message: 'Invalid highlight data',
+        details: error.details 
+      });
     }
+    
+    // Process valid data
+    io.to(`study-${value.studyId}`).emit('highlight-updated', value);
   });
 
   // When someone disconnects
@@ -103,3 +113,5 @@ server.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
   console.log(`✅ Socket.IO ready for connections`);
 });
+
+app.use(errorHandler);

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-// This lets teacher highlight text in different colors
 export function HighlightTool({ onHighlight, socket }) {
   const [selectedColor, setSelectedColor] = useState('yellow')
   const [selectedText, setSelectedText] = useState('')
@@ -15,25 +14,26 @@ export function HighlightTool({ onHighlight, socket }) {
   const handleHighlight = (text) => {
     setSelectedText(text)
     
-    // Emit to backend via WebSocket
     if (socket) {
       socket.emit('highlight-text', {
-        studyId: 'test-study', // Later: get from URL
+        studyId: 'test-study',
         text: text,
-        color: selectedColor
+        color: selectedColor,
+        timestamp: new Date()
       })
+      console.log(`📌 Highlighted: "${text}" in ${selectedColor}`)
     }
 
-    // call parent component callback
     onHighlight({
       text: text,
-      color: selectedColor
+      color: selectedColor,
+      timestamp: new Date()
     })
   }
 
   return (
     <div className="highlight-tool">
-      <h3>Highlight Colors</h3>
+      <h3>✨ Highlight Colors</h3>
       <div className="color-palette">
         {colors.map(color => (
           <button
@@ -42,15 +42,16 @@ export function HighlightTool({ onHighlight, socket }) {
             style={{ backgroundColor: color.hex }}
             onClick={() => setSelectedColor(color.name)}
             title={color.label}
+            aria-label={`Select ${color.label}`}
           />
         ))}
       </div>
       
       {selectedText && (
         <div className="highlight-preview">
-          <p>Selected: <span style={{ backgroundColor: colors.find(c => c.name === selectedColor)?.hex }}>
-            {selectedText}
-          </span></p>
+          <span>
+            Selected: <strong>"{selectedText}"</strong>
+          </span>
         </div>
       )}
     </div>

@@ -8,6 +8,9 @@
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.11"
   }
 }
