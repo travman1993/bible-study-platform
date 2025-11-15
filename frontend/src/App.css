@@ -26,6 +26,234 @@
     height: 100vh;
     background: #f8fafb;
   }
+
+  /* ===== TEACHER CAMERA SECTION ===== */
+.teacher-camera-container {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.camera-section {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.camera-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.teacher-badge {
+  background: #ef4444;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  animation: live-pulse 2s infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { 
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% { 
+    opacity: 0.7;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3);
+  }
+}
+
+.camera-feed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #9ca3af;
+  gap: 12px;
+  font-family: inherit;
+}
+
+.camera-placeholder svg {
+  opacity: 0.5;
+}
+
+.camera-placeholder p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.camera-error {
+  padding: 12px 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+  border-left: 3px solid #ef4444;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8fafb;
+  border-top: 1px solid #e5e7eb;
+}
+
+.control-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.control-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ===== HEADER UPDATES ===== */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teacher-indicator {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .camera-feed {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .camera-feed {
+    aspect-ratio: 16 / 9;
+  }
+
+  .camera-controls {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .control-btn {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .control-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .camera-header {
+    padding: 12px;
+  }
+
+  .camera-header h3 {
+    font-size: 14px;
+  }
+
+  .teacher-badge {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .camera-feed {
+    aspect-ratio: 4 / 3;
+  }
+
+  .camera-controls {
+    flex-direction: column;
+  }
+
+  .control-btn {
+    font-size: 13px;
+    padding: 10px;
+  }
+}
+
+
+
   
   /* ===== HEADER ===== */
   .app-header {
@@ -519,10 +747,12 @@
   
     .verse {
       margin-bottom: 12px;
+      align-items: center;
     }
   
     .verses-container {
       font-size: 14px;
+      
     }
   
     .color-palette {
