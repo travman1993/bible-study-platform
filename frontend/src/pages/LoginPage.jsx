@@ -119,4 +119,3 @@ function LoginPage() {
 }
 
 export default LoginPage
-EOF
