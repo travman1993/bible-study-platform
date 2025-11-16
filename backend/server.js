@@ -5,6 +5,8 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+const authRoutes = require('./routes/auth');
+const paymentRoutes = require('./routes/payments');
 
 require('dotenv').config();
 
@@ -115,3 +117,5 @@ server.listen(PORT, () => {
 });
 
 app.use(errorHandler);
+app.use('/api/auth', authRoutes);
+app.use('/api/payments', paymentRoutes);
