@@ -47,7 +47,7 @@ function LoginPage() {
     <div className="login-page">
       <div className="login-container">
         <div className="login-box">
-          <h1>📖 Bible Study Platform</h1>
+          <h1><img src="/src/assets/winner.png" alt="Gathered" className="logo-img" /> Gathered</h1>
           <p className="subtitle">Sign in to your account</p>
 
           <form onSubmit={handleSubmit}>

@@ -17,6 +17,13 @@
     align-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
+  .logo-img {
+    height: 30px;
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 7px;
+  }
   
   .header-left h1 {
     font-size: 28px;

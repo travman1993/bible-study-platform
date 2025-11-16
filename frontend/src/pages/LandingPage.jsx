@@ -10,7 +10,7 @@ function LandingPage() {
       {/* Header */}
       <header className="landing-header">
         <div className="header-container">
-          <h1 className="logo">📖 Bible Study Platform</h1>
+          <h1 className="logo"><img src="/src/assets/winner.png" alt="Gathered" className="logo-img" /> Gathered</h1>
           <nav className="header-nav">
             {user ? (
               <>

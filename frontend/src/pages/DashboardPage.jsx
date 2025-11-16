@@ -51,7 +51,7 @@ function DashboardPage() {
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
-          <h1>📖 Bible Study Platform</h1>
+          <h1><img src="/src/assets/winner.png" alt="Gathered" className="logo-img" /> Gathered </h1>
           <p className="welcome-text">Welcome back, {user?.name}!</p>
         </div>
         <div className="header-right">

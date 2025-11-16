@@ -1,0 +1,402 @@
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f8fafb;
+  }
+  
+  /* Header */
+  .app-header {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .logo-img {
+    height: 30px;
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 7px;
+  }
+  
+  .header-left h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #1f2937;
+  }
+  
+  .header-center p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  
+  .teacher-indicator {
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .header-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .connection-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .status-connected {
+    color: #10b981;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .status-disconnected {
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .participant-info {
+    background: #f3f4f6;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+  
+  .end-study-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.3s;
+  }
+  
+  .end-study-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+  }
+  
+  /* Main Content */
+  .app-main {
+    display: flex;
+    flex: 1;
+    gap: 16px;
+    padding: 16px;
+    overflow: hidden;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  
+  .sidebar > * {
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .sidebar > *:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  /* Participant Counter */
+  .participant-counter {
+    background: #f3f4f6;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .participant-counter p {
+    margin: 0;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+  }
+  
+  /* Content Area */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+  }
+  
+  /* Teacher Camera Container */
+  .teacher-camera-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-height: 300px;
+  }
+  
+  .camera-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .camera-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+  
+  .camera-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  .teacher-badge {
+    background: #ef4444;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    animation: live-pulse 2s infinite;
+  }
+  
+  @keyframes live-pulse {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+      opacity: 0.7;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3);
+    }
+  }
+  
+  .camera-feed {
+    flex: 1;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  .video-stream {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .camera-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    gap: 8px;
+  }
+  
+  /* Bible Display */
+  .bible-display-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .bible-display-container h2 {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    color: #1f2937;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 12px;
+  }
+  
+  .verse {
+    margin-bottom: 16px;
+    line-height: 1.8;
+  }
+  
+  .verse-number {
+    font-weight: 700;
+    color: #667eea;
+    margin-right: 6px;
+  }
+  
+  .verse-text {
+    color: #374151;
+  }
+  
+  /* Participant View */
+  .participant-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    gap: 16px;
+    padding: 16px;
+    background: #f8fafb;
+  }
+  
+  .ad-spot {
+    background: #e5e7eb;
+    padding: 12px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  
+  .participant-camera {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    flex: 1.8;
+  }
+  
+  .participant-bible {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .participant-bible h3 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    color: #1f2937;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 8px;
+  }
+  
+  .participant-bible p {
+    margin: 0;
+    line-height: 1.8;
+    color: #374151;
+    font-size: 15px;
+  }
+  
+  .highlight-yellow {
+    background: #FFEB3B;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  
+  .highlight-green {
+    background: #4CAF50;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  
+  .highlight-blue {
+    background: #2196F3;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  
+  .highlight-red {
+    background: #F44336;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+  
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .app-main {
+      flex-direction: column;
+    }
+  
+    .sidebar {
+      width: 100%;
+      max-height: 200px;
+    }
+  
+    .content {
+      min-height: 400px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .app-header {
+      flex-direction: column;
+      padding: 12px 16px;
+    }
+  
+    .app-main {
+      flex-direction: column;
+      padding: 12px;
+      gap: 12px;
+    }
+  
+    .sidebar {
+      width: 100%;
+      max-height: 150px;
+      flex-direction: row;
+      overflow-x: auto;
+    }
+  
+    .header-left h1 {
+      font-size: 20px;
+    }
+  
+    .participant-container {
+      padding: 12px;
+      gap: 12px;
+    }
+  
+    .participant-camera {
+      min-height: 250px;
+    }
+  
+    .participant-bible {
+      padding: 16px;
+    }
+  
+    .participant-bible h3 {
+      font-size: 16px;
+    }
+  
+    .participant-bible p {
+      font-size: 14px;
+    }
+  }

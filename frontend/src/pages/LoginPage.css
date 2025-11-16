@@ -8,6 +8,13 @@
     justify-content: center;
     padding: 24px;
   }
+  .logo-img {
+    height: 30px;
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 7px;
+  }
   
   .login-container {
     width: 100%;

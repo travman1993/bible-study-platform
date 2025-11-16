@@ -116,7 +116,7 @@ function LiveStudyPage() {
     <div className="app-container">
       <header className="app-header">
         <div className="header-left">
-          <h1>📖 Bible Study Platform</h1>
+          <h1><img src="/src/assets/winner.png" alt="Gathered" className="logo-img" /> Gathered</h1>
           <span className="teacher-indicator">Teacher Mode</span>
         </div>
         <div className="header-center">
