@@ -6,8 +6,16 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Check localStorage on mount and when storage changes
   useEffect(() => {
-    // Check if user is already logged in
+    checkAuth()
+    
+    // Listen for storage changes (for test login)
+    window.addEventListener('storage', checkAuth)
+    return () => window.removeEventListener('storage', checkAuth)
+  }, [])
+
+  const checkAuth = () => {
     const token = localStorage.getItem('token')
     const userData = localStorage.getItem('user')
     
@@ -17,11 +25,14 @@ export function AuthProvider({ children }) {
       } catch (err) {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+        setUser(null)
       }
+    } else {
+      setUser(null)
     }
     
     setLoading(false)
-  }, [])
+  }
 
   const register = async (email, password, name, role) => {
     try {
@@ -89,6 +100,27 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const testLogin = (role) => {
+    // Direct test login without backend
+    const mockUser = {
+      _id: '123456789',
+      name: role === 'teacher' ? 'Pastor John' : 'Jane Doe',
+      email: role === 'teacher' ? 'pastor@example.com' : 'jane@example.com',
+      role: role,
+      bio: role === 'teacher' ? 'Lead Pastor - First Baptist Church' : 'Church Member',
+      profileImage: null
+    }
+    
+    // Store in localStorage
+    localStorage.setItem('token', 'test-token-' + role)
+    localStorage.setItem('user', JSON.stringify(mockUser))
+    
+    // Update state
+    setUser(mockUser)
+    
+    return true
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -96,7 +128,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, testLogin }}>
       {children}
     </AuthContext.Provider>
   )
@@ -109,3 +141,4 @@ export function useAuth() {
   }
   return context
 }
+EOF

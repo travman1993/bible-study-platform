@@ -8,7 +8,7 @@ function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { login } = useAuth()
+  const { login, testLogin } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -25,6 +25,19 @@ function LoginPage() {
       }
     } catch (err) {
       setError(err.message || 'Login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Test login for development
+  const handleTestLogin = (role) => {
+    setLoading(true)
+    try {
+      testLogin(role)
+      navigate('/dashboard')
+    } catch (err) {
+      setError('Test login failed')
     } finally {
       setLoading(false)
     }
@@ -76,6 +89,29 @@ function LoginPage() {
           <p className="signup-link">
             Don't have an account? <Link to="/register">Create one here</Link>
           </p>
+
+          {/* TEST LOGIN SECTION - DEVELOPMENT ONLY */}
+          <div className="test-login-section">
+            <p className="test-login-label">🧪 Test Login (Development)</p>
+            <div className="test-buttons">
+              <button
+                type="button"
+                className="test-btn teacher"
+                onClick={() => handleTestLogin('teacher')}
+                disabled={loading}
+              >
+                👨‍🏫 Test Teacher
+              </button>
+              <button
+                type="button"
+                className="test-btn participant"
+                onClick={() => handleTestLogin('participant')}
+                disabled={loading}
+              >
+                👤 Test Participant
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -83,3 +119,4 @@ function LoginPage() {
 }
 
 export default LoginPage
+EOF
