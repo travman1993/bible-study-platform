@@ -1,106 +1,111 @@
-// frontend/src/context/AuthContext.jsx
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react'
 
-export const AuthContext = createContext();
+const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Check if already logged in
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      verifyToken(token);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const verifyToken = async (token) => {
-    try {
-      const res = await fetch('http://localhost:3000/api/auth/verify', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUser(data.user);
-      } else {
-        localStorage.removeItem('token');
+    // Check if user is already logged in
+    const token = localStorage.getItem('token')
+    const userData = localStorage.getItem('user')
+    
+    if (token && userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (err) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
       }
-    } catch (err) {
-      console.error('Token verification failed:', err);
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    setLoading(false)
+  }, [])
 
   const register = async (email, password, name, role) => {
     try {
-      setError('');
-      const res = await fetch('http://localhost:3000/api/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, role })
-      });
-      const data = await res.json();
-      
-      if (!data.success) {
-        setError(data.error);
-        return false;
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          role: role || 'participant'
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Registration failed')
       }
+
+      const data = await response.json()
       
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-      return true;
+      // Store token and user
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setUser(data.user)
+      
+      return true
     } catch (err) {
-      setError(err.message);
-      return false;
+      console.error('Registration error:', err)
+      throw err
     }
-  };
+  }
 
   const login = async (email, password) => {
     try {
-      setError('');
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      
-      if (!data.success) {
-        setError(data.error);
-        return false;
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Login failed')
       }
+
+      const data = await response.json()
       
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-      return true;
+      // Store token and user
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setUser(data.user)
+      
+      return true
     } catch (err) {
-      setError(err.message);
-      return false;
+      console.error('Login error:', err)
+      throw err
     }
-  };
+  }
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setUser(null)
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, register, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export function useAuth() {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider')
   }
-  return context;
+  return context
 }
