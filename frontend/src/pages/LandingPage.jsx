@@ -1,21 +1,22 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import heroImage from '../assets/hero.png'
+import logoImage from '../assets/winner.png'
 import './LandingPage.css'
 
 function LandingPage() {
   const { user } = useAuth()
 
   return (
-    <div className="landing-page">
-      {/* Header */}
-      <header className="landing-header">
+        <div className="landing-page">      <header className="landing-header">
         <div className="header-container">
-          <h1 className="logo"><img src="/src/assets/winner.png" alt="Gathered" className="logo-img" /> Gathered</h1>
+          <h1 className="logo">
+            <img src={logoImage} alt="Gathered" className="logo-img" />
+            Gathered
+          </h1>
           <nav className="header-nav">
             {user ? (
-              <>
-                <Link to="/dashboard" className="nav-link">Dashboard</Link>
-              </>
+              <Link to="/dashboard" className="nav-link">Dashboard</Link>
             ) : (
               <>
                 <Link to="/login" className="nav-link">Login</Link>
@@ -26,8 +27,7 @@ function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="hero">
+      <section className="hero" style={{ backgroundImage: `url(${heroImage})` }}>
         <div className="hero-content">
           <h2>Lead Bible Studies Without the Chaos</h2>
           <p>Real-time Scripture display and highlighting for focused group study sessions</p>
@@ -42,14 +42,13 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Problem Section */}
       <section className="problem">
         <h3>The Problem</h3>
         <div className="problem-grid">
           <div className="problem-card">
             <span className="icon">⏱️</span>
             <h4>Wasted Time Searching</h4>
-            <p>"Turn to John 3:16" → 30 seconds of chaos while everyone searches</p>
+            <p>Turn to John 3:16 - 30 seconds of chaos while everyone searches</p>
           </div>
           <div className="problem-card">
             <span className="icon">📱</span>
@@ -64,13 +63,12 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Benefits Section */}
       <section className="benefits">
         <h3>Built for Bible Study Leaders</h3>
         <div className="benefits-grid">
           <div className="benefit-card">
             <h4>✅ Instant Passage Display</h4>
-            <p>Teacher searches "John 3:16" → appears on everyone's screen instantly</p>
+            <p>Teacher searches John 3:16 - appears on everyone's screen instantly</p>
           </div>
           <div className="benefit-card">
             <h4>✅ Real-time Highlighting</h4>
@@ -95,7 +93,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Comparison */}
       <section className="comparison">
         <h3>Why Not Just Use Zoom or Discord?</h3>
         <div className="comparison-table">
@@ -103,7 +100,7 @@ function LandingPage() {
             <thead>
               <tr>
                 <th>Feature</th>
-                <th>Bible Study Platform</th>
+                <th>Gathered</th>
                 <th>Zoom</th>
                 <th>Discord</th>
               </tr>
@@ -150,7 +147,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
       <section className="pricing">
         <h3>Simple, Transparent Pricing</h3>
         <div className="pricing-grid">
@@ -195,10 +191,9 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="landing-footer">
         <p>Built for churches and faith-based leaders who want to focus on content, not tech</p>
-        <p className="footer-secondary">© 2025 Bible Study Platform. All rights reserved.</p>
+        <p className="footer-secondary">© 2025 Gathered. All rights reserved.</p>
       </footer>
     </div>
   )
