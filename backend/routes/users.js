@@ -1,191 +1,317 @@
-// backend/routes/users.js
+// backend/routes/studies.js - FIXED VERSION
 const express = require('express');
+const Study = require('../models/Study');
 const User = require('../models/User');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireTeacher } = require('../middleware/auth');
+const crypto = require('crypto');
 
 const router = express.Router();
 
-// GET CURRENT USER PROFILE
-router.get('/profile/me', verifyToken, async (req, res) => {
+// Generate secure join code
+const generateJoinCode = () => {
+  return crypto.randomBytes(6).toString('hex').toUpperCase();
+};
+
+// CREATE STUDY (Teachers only)
+router.post('/', verifyToken, requireTeacher, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
+    const { title, startTime, endTime, description, group, topic } = req.body;
+
+    // Validate input
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+
+    console.log('Creating study:', { title, startTime });
+
+    // Create study
+    const study = new Study({
+      title: title,
+      description: description || '',
+      topic: topic || '',
+      group: group || 'General',
+      creatorId: req.userId,
+      joinCode: generateJoinCode(),
+      startTime: startTime ? new Date(startTime) : new Date(),
+      endTime: endTime ? new Date(endTime) : null,
+      status: 'scheduled',
+      participants: [{
+        userId: req.userId,
+        role: 'teacher',
+        joinedAt: new Date()
+      }],
+      settings: {
+        maxParticipants: 50,
+        bibleVersion: 'ESV',
+        allowParticipantAudio: true,
+        recordSession: true
+      }
+    });
+
+    await study.save();
+    console.log('Study saved:', study._id);
+
+    // Add to user's created studies
+    const user = await User.findById(req.userId);
+    user.createdStudies.push(study._id);
+    await user.save();
+    console.log('User updated with study');
+
+    return res.status(201).json({
+      success: true,
+      study: {
+        _id: study._id,
+        id: study._id,
+        title: study.title,
+        joinCode: study.joinCode,
+        status: study.status,
+        startTime: study.startTime,
+        createdAt: study.createdAt
+      }
+    });
+  } catch (err) {
+    console.error('Study creation error:', err);
+    return res.status(500).json({ error: 'Failed to create study', details: err.message });
+  }
+});
+
+// GET ALL STUDIES (Only teacher's studies)
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).populate('createdStudies').populate('participatedStudies');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({
+    // Combine created and participated studies
+    const created = user.createdStudies.map(s => ({
+      _id: s._id,
+      id: s._id,
+      title: s.title,
+      status: s.status,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      participants: s.participants?.length || 0,
+      createdAt: s.createdAt,
+      isCreator: true
+    }));
+
+    const participated = user.participatedStudies.map(s => ({
+      _id: s._id,
+      id: s._id,
+      title: s.title,
+      status: s.status,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      participants: s.participants?.length || 0,
+      createdAt: s.createdAt,
+      isCreator: false
+    }));
+
+    const allStudies = [...created, ...participated];
+
+    return res.json({
       success: true,
-      user: {
-        _id: user._id,
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        subscriptionStatus: user.subscriptionStatus,
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt
+      studies: allStudies
+    });
+  } catch (err) {
+    console.error('Get studies error:', err);
+    return res.status(500).json({ error: 'Failed to fetch studies', details: err.message });
+  }
+});
+
+// GET STUDY DETAILS
+router.get('/:id', verifyToken, async (req, res) => {
+  try {
+    const study = await Study.findById(req.params.id).populate('creatorId', 'name email');
+
+    if (!study) {
+      return res.status(404).json({ error: 'Study not found' });
+    }
+
+    // Check access
+    const isCreator = study.creatorId._id.toString() === req.userId;
+    const isParticipant = study.participants?.some(p => p.userId?.toString() === req.userId);
+
+    if (!isCreator && !isParticipant) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    return res.json({
+      success: true,
+      study: {
+        _id: study._id,
+        id: study._id,
+        title: study.title,
+        topic: study.topic,
+        description: study.description,
+        passage: study.passage,
+        highlights: study.highlights,
+        participants: study.participants,
+        status: study.status,
+        joinCode: study.joinCode,
+        startTime: study.startTime,
+        endTime: study.endTime,
+        creatorId: study.creatorId,
+        isCreator
       }
     });
   } catch (err) {
-    console.error('Get profile error:', err);
-    res.status(500).json({ error: 'Failed to fetch profile', details: err.message });
+    console.error('Get study error:', err);
+    return res.status(500).json({ error: 'Failed to fetch study', details: err.message });
   }
 });
 
-// UPDATE USER PROFILE
-router.put('/profile/me', verifyToken, async (req, res) => {
+// JOIN STUDY
+router.post('/:joinCode/join', verifyToken, async (req, res) => {
   try {
-    const { name, role } = req.body;
+    const { joinCode } = req.params;
 
+    const study = await Study.findOne({ joinCode });
+    if (!study) {
+      return res.status(404).json({ error: 'Study not found' });
+    }
+
+    // Check if already joined
+    const alreadyJoined = study.participants?.some(p => p.userId?.toString() === req.userId);
+    if (alreadyJoined) {
+      return res.json({ 
+        success: true, 
+        message: 'Already joined this study',
+        study: { 
+          _id: study._id,
+          id: study._id,
+          title: study.title 
+        }
+      });
+    }
+
+    // Add participant
+    study.participants.push({
+      userId: req.userId,
+      joinedAt: new Date(),
+      role: 'participant'
+    });
+
+    await study.save();
+
+    // Add to user's participated studies
     const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!user.participatedStudies.includes(study._id)) {
+      user.participatedStudies.push(study._id);
+      await user.save();
     }
 
-    // Update fields
-    if (name) user.name = name;
-    if (role && ['teacher', 'participant'].includes(role)) {
-      user.role = role;
-    }
-
-    await user.save();
-
-    console.log('Profile updated:', user._id);
-
-    res.json({
+    return res.json({
       success: true,
-      user: {
-        _id: user._id,
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        updatedAt: user.updatedAt
+      study: {
+        _id: study._id,
+        id: study._id,
+        title: study.title,
+        creatorId: study.creatorId,
+        status: study.status,
+        passage: study.passage,
+        joinCode: study.joinCode
       }
     });
   } catch (err) {
-    console.error('Update profile error:', err);
-    res.status(500).json({ error: 'Failed to update profile', details: err.message });
+    console.error('Join study error:', err);
+    return res.status(500).json({ error: 'Failed to join study', details: err.message });
   }
 });
 
-// GET CONTACTS
-router.get('/contacts', verifyToken, async (req, res) => {
+// UPDATE STUDY (Teachers only)
+router.put('/:id', verifyToken, requireTeacher, async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    const study = await Study.findById(req.params.id);
+    
+    if (!study) {
+      return res.status(404).json({ error: 'Study not found' });
     }
 
-    // Placeholder - store contacts in user document
-    const contacts = user.contacts || [];
+    if (study.creatorId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Only creator can update study' });
+    }
 
-    res.json({
+    // Update allowed fields
+    const { title, passage, status, settings } = req.body;
+    if (title) study.title = title;
+    if (passage) study.passage = passage;
+    if (status) study.status = status;
+    if (settings) study.settings = { ...study.settings, ...settings };
+
+    await study.save();
+
+    return res.json({
       success: true,
-      contacts: contacts
+      study: study
     });
   } catch (err) {
-    console.error('Get contacts error:', err);
-    res.status(500).json({ error: 'Failed to fetch contacts', details: err.message });
+    console.error('Update study error:', err);
+    return res.status(500).json({ error: 'Failed to update study', details: err.message });
   }
 });
 
-// ADD CONTACT
-router.post('/contacts', verifyToken, async (req, res) => {
+// ADD HIGHLIGHT
+router.post('/:id/highlights', verifyToken, async (req, res) => {
   try {
-    const { name, email, phone, group } = req.body;
+    const { text, color, start, end } = req.body;
 
-    if (!name || !email) {
-      return res.status(400).json({ error: 'Name and email are required' });
+    const study = await Study.findById(req.params.id);
+    if (!study) {
+      return res.status(404).json({ error: 'Study not found' });
     }
 
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    if (!user.contacts) {
-      user.contacts = [];
-    }
-
-    const contact = {
-      _id: require('mongoose').Types.ObjectId(),
-      name,
-      email,
-      phone: phone || '',
-      group: group || 'General',
-      createdAt: new Date()
+    const highlight = {
+      text: text,
+      color: color || 'yellow',
+      userId: req.userId,
+      timestamp: new Date(),
+      start: start,
+      end: end
     };
 
-    user.contacts.push(contact);
-    await user.save();
+    study.highlights.push(highlight);
+    await study.save();
 
-    console.log('Contact added:', contact._id);
-
-    res.status(201).json({
+    return res.json({
       success: true,
-      contact: contact
+      highlight: highlight
     });
   } catch (err) {
-    console.error('Add contact error:', err);
-    res.status(500).json({ error: 'Failed to add contact', details: err.message });
+    console.error('Add highlight error:', err);
+    return res.status(500).json({ error: 'Failed to add highlight', details: err.message });
   }
 });
 
-// UPDATE CONTACT
-router.put('/contacts/:contactId', verifyToken, async (req, res) => {
+// DELETE STUDY (Teachers only)
+router.delete('/:id', verifyToken, requireTeacher, async (req, res) => {
   try {
-    const { contactId } = req.params;
-    const { name, email, phone, group } = req.body;
+    const study = await Study.findById(req.params.id);
+    
+    if (!study) {
+      return res.status(404).json({ error: 'Study not found' });
+    }
 
+    if (study.creatorId.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Only creator can delete study' });
+    }
+
+    await Study.deleteOne({ _id: req.params.id });
+
+    // Remove from user
     const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const contact = user.contacts?.find(c => c._id.toString() === contactId);
-    if (!contact) {
-      return res.status(404).json({ error: 'Contact not found' });
-    }
-
-    if (name) contact.name = name;
-    if (email) contact.email = email;
-    if (phone) contact.phone = phone;
-    if (group) contact.group = group;
-
+    user.createdStudies = user.createdStudies.filter(s => s.toString() !== req.params.id);
     await user.save();
 
-    res.json({
+    return res.json({
       success: true,
-      contact: contact
+      message: 'Study deleted'
     });
   } catch (err) {
-    console.error('Update contact error:', err);
-    res.status(500).json({ error: 'Failed to update contact', details: err.message });
-  }
-});
-
-// DELETE CONTACT
-router.delete('/contacts/:contactId', verifyToken, async (req, res) => {
-  try {
-    const { contactId } = req.params;
-
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    user.contacts = user.contacts?.filter(c => c._id.toString() !== contactId) || [];
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Contact deleted'
-    });
-  } catch (err) {
-    console.error('Delete contact error:', err);
-    res.status(500).json({ error: 'Failed to delete contact', details: err.message });
+    console.error('Delete study error:', err);
+    return res.status(500).json({ error: 'Failed to delete study', details: err.message });
   }
 });
 

@@ -1,4 +1,4 @@
-/* frontend/src/pages/LandingPage.css - COMPLETE FIXED VERSION */
+/* frontend/src/pages/LandingPage.css - IMAGE SIZING FIX */
 
 * {
   margin: 0;
@@ -12,7 +12,9 @@
   min-height: 100vh;
   background: #f9fafb;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
 }
+
 /* ===== NAVIGATION ===== */
 .landing-nav {
   background: white;
@@ -33,10 +35,18 @@
 }
 
 .nav-logo {
-  font-size: 24px;
+  font-size: 44px;
   font-weight: 700;
   color: #667eea;
   white-space: nowrap;
+}
+
+.logo-image img {
+  height: 70px;
+  width: auto;
+  vertical-align: middle;
+  margin-right: 8px;
+  border-radius: 25%;
 }
 
 .nav-buttons {
@@ -76,7 +86,7 @@
   background: #764ba2;
 }
 
-/* ===== HERO SECTION ===== */
+/* ===== HERO SECTION - IMAGE FIX ===== */
 .hero {
   padding: 60px 40px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -90,6 +100,12 @@
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
+  min-height: auto;
+}
+
+.hero-content {
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .hero-content h1 {
@@ -154,26 +170,28 @@
   font-size: 18px;
 }
 
+/* ===== HERO IMAGE - KEY FIX ===== */
 .hero-image {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 400px;
+  max-width: 500px;
+  margin: 0 auto;
+  overflow: hidden;
 }
 
-.hero-image-placeholder {
+.hero-image img {
   width: 100%;
-  aspect-ratio: 1;
-  background: rgba(255, 255, 255, 0.1);
-  border: 3px dashed rgba(255, 255, 255, 0.3);
+  height: auto;
+  max-width: 100%;
+  display: block;
   border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48px;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 700;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
+
+
 
 /* ===== FEATURES SECTION ===== */
 .features {
@@ -220,6 +238,7 @@
   height: 48px;
   margin: 0 auto 16px;
   color: #667eea;
+  flex-shrink: 0;
 }
 
 .feature-card h3 {
@@ -260,6 +279,7 @@
   justify-content: center;
   gap: 16px;
   margin-bottom: 60px;
+  flex-wrap: wrap;
 }
 
 .billing-toggle button {
@@ -541,6 +561,10 @@
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .hero-image {
+    max-width: 400px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -605,6 +629,10 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 24px;
   }
+
+  .hero-image {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -634,5 +662,9 @@
   .cta-button {
     padding: 12px 24px;
     font-size: 14px;
+  }
+
+  .hero-image {
+    max-width: 90%;
   }
 }

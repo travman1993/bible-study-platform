@@ -1,10 +1,10 @@
+// frontend/src/components/dashboard/Calendar.jsx - FIXED VERSION
 import { useState, useEffect } from 'react'
 import './Calendar.css'
 
 function Calendar({ studies, onStartStudy, onRefresh }) {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 10, 15)) // Nov 15, 2025
-  const [viewMode, setViewMode] = useState('month') // month or week
-  const [newStudyForm, setNewStudyForm] = useState(null)
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [newStudyForm, setNewStudyForm] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,6 +14,8 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
     group: 'General',
     topic: ''
   })
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const daysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -33,8 +35,26 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
 
   const handleCreateStudy = async (e) => {
     e.preventDefault()
+    setError(null)
+    setLoading(true)
 
     try {
+      // Validate form
+      if (!formData.title.trim()) {
+        setError('Title is required')
+        setLoading(false)
+        return
+      }
+
+      console.log('Sending study data:', {
+        title: formData.title,
+        description: formData.description,
+        startTime: new Date(`${formData.date}T${formData.startTime}`),
+        endTime: new Date(`${formData.date}T${formData.endTime}`),
+        group: formData.group,
+        topic: formData.topic
+      })
+
       const response = await fetch('/api/studies', {
         method: 'POST',
         headers: {
@@ -51,21 +71,37 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
         })
       })
 
-      if (response.ok) {
-        setFormData({
-          title: '',
-          description: '',
-          date: new Date().toISOString().split('T')[0],
-          startTime: '19:00',
-          endTime: '20:00',
-          group: 'General',
-          topic: ''
-        })
-        setNewStudyForm(null)
-        onRefresh?.()
+      const data = await response.json()
+      console.log('Response:', data)
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to create study')
       }
+
+      // Success!
+      setFormData({
+        title: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        startTime: '19:00',
+        endTime: '20:00',
+        group: 'General',
+        topic: ''
+      })
+      setNewStudyForm(false)
+      setError(null)
+      
+      // Refresh studies
+      if (onRefresh) {
+        onRefresh()
+      }
+      
+      alert('Study created successfully!')
     } catch (err) {
       console.error('Error creating study:', err)
+      setError(err.message || 'Failed to create study. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -105,12 +141,19 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
         </button>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="error-message">
+          ⚠️ {error}
+        </div>
+      )}
+
       {/* Create Study Form */}
       {newStudyForm && (
         <form className="create-study-form" onSubmit={handleCreateStudy}>
           <div className="form-grid">
             <div className="form-group">
-              <label>Study Title</label>
+              <label>Study Title *</label>
               <input
                 type="text"
                 placeholder="e.g., John Chapter 3"
@@ -124,7 +167,7 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
             </div>
 
             <div className="form-group">
-              <label>Date</label>
+              <label>Date *</label>
               <input
                 type="date"
                 value={formData.date}
@@ -145,7 +188,6 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
                   ...prev,
                   startTime: e.target.value
                 }))}
-                required
               />
             </div>
 
@@ -158,7 +200,6 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
                   ...prev,
                   endTime: e.target.value
                 }))}
-                required
               />
             </div>
 
@@ -205,7 +246,9 @@ function Calendar({ studies, onStartStudy, onRefresh }) {
             />
           </div>
 
-          <button type="submit" className="submit-btn">Schedule Study</button>
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? 'Scheduling...' : 'Schedule Study'}
+          </button>
         </form>
       )}
 

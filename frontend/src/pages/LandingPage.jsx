@@ -72,7 +72,7 @@ function LandingPage() {
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-logo">
-            <span><img src="./src/assets/winner.png" /> Gathered</span>
+            <span class="logo-image"><img src="./src/assets/winner.png" /> Gathered</span>
           </div>
           <div className="nav-buttons">
             <button 

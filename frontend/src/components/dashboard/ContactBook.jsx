@@ -1,3 +1,4 @@
+// frontend/src/components/dashboard/ContactBook.jsx - FIXED VERSION
 import { useState, useEffect } from 'react'
 import './ContactBook.css'
 
@@ -6,6 +7,7 @@ function ContactBook({ userId }) {
   const [groups, setGroups] = useState(['General', 'Mens Group', 'Womens Group', 'Young Adults'])
   const [loading, setLoading] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [error, setError] = useState(null)
   const [newContact, setNewContact] = useState({
     name: '',
     email: '',
@@ -21,18 +23,23 @@ function ContactBook({ userId }) {
 
   const fetchContacts = async () => {
     setLoading(true)
+    setError(null)
     try {
-      const response = await fetch('/api/contacts', {
+      const response = await fetch('/api/users/contacts', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       })
+      const data = await response.json()
+      
       if (response.ok) {
-        const data = await response.json()
-        setContacts(data)
+        setContacts(data.contacts || [])
+      } else {
+        setError(data.error || 'Failed to fetch contacts')
       }
     } catch (err) {
       console.error('Error fetching contacts:', err)
+      setError('Failed to fetch contacts')
     } finally {
       setLoading(false)
     }
@@ -40,14 +47,15 @@ function ContactBook({ userId }) {
 
   const handleAddContact = async (e) => {
     e.preventDefault()
+    setError(null)
 
     if (!newContact.name || !newContact.email) {
-      alert('Name and email are required')
+      setError('Name and email are required')
       return
     }
 
     try {
-      const response = await fetch('/api/contacts', {
+      const response = await fetch('/api/users/contacts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,14 +64,20 @@ function ContactBook({ userId }) {
         body: JSON.stringify(newContact)
       })
 
+      const data = await response.json()
+
       if (response.ok) {
-        const createdContact = await response.json()
-        setContacts(prev => [...prev, createdContact])
+        setContacts(prev => [...prev, data.contact])
         setNewContact({ name: '', email: '', phone: '', group: 'General' })
         setShowAddForm(false)
+        setError(null)
+        alert('Contact added successfully!')
+      } else {
+        setError(data.error || 'Failed to add contact')
       }
     } catch (err) {
       console.error('Error adding contact:', err)
+      setError('Failed to add contact')
     }
   }
 
@@ -71,7 +85,7 @@ function ContactBook({ userId }) {
     if (!confirm('Delete this contact?')) return
 
     try {
-      const response = await fetch(`/api/contacts/${contactId}`, {
+      const response = await fetch(`/api/users/contacts/${contactId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -80,40 +94,14 @@ function ContactBook({ userId }) {
 
       if (response.ok) {
         setContacts(prev => prev.filter(c => c._id !== contactId))
+        alert('Contact deleted!')
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to delete contact')
       }
     } catch (err) {
       console.error('Error deleting contact:', err)
-    }
-  }
-
-  const handleSendInvites = async (groupName) => {
-    const groupContacts = filterGroup === 'All'
-      ? contacts
-      : contacts.filter(c => c.group === groupName)
-
-    if (groupContacts.length === 0) {
-      alert('No contacts to invite')
-      return
-    }
-
-    try {
-      const response = await fetch('/api/studies/send-invites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          contactIds: groupContacts.map(c => c._id),
-          group: groupName
-        })
-      })
-
-      if (response.ok) {
-        alert(`Invites sent to ${groupContacts.length} people`)
-      }
-    } catch (err) {
-      console.error('Error sending invites:', err)
+      setError('Failed to delete contact')
     }
   }
 
@@ -136,12 +124,19 @@ function ContactBook({ userId }) {
         </button>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="error-message">
+          ⚠️ {error}
+        </div>
+      )}
+
       {/* Add Contact Form */}
       {showAddForm && (
         <form className="add-contact-form" onSubmit={handleAddContact}>
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="name">Name</label>
+              <label htmlFor="name">Name *</label>
               <input
                 id="name"
                 type="text"
@@ -155,7 +150,7 @@ function ContactBook({ userId }) {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">Email *</label>
               <input
                 id="email"
                 type="email"
@@ -224,49 +219,28 @@ function ContactBook({ userId }) {
 
       {/* Contacts List */}
       {loading ? (
-        <p>Loading contacts...</p>
+        <p className="loading">Loading contacts...</p>
       ) : filteredContacts.length === 0 ? (
         <p className="no-contacts">No contacts found</p>
       ) : (
         <div className="contacts-list">
-          <div className="contacts-header">
-            <div className="col-name">Name</div>
-            <div className="col-email">Email</div>
-            <div className="col-group">Group</div>
-            <div className="col-actions">Actions</div>
-          </div>
           {filteredContacts.map(contact => (
-            <div key={contact._id} className="contact-row">
-              <div className="col-name">{contact.name}</div>
-              <div className="col-email">{contact.email}</div>
-              <div className="col-group">
-                <span className="group-badge">{contact.group}</span>
+            <div key={contact._id} className="contact-item">
+              <div className="contact-info">
+                <h4>{contact.name}</h4>
+                <p className="email">{contact.email}</p>
+                {contact.phone && <p className="phone">{contact.phone}</p>}
+                <span className="group-tag">{contact.group}</span>
               </div>
-              <div className="col-actions">
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDeleteContact(contact._id)}
-                  title="Delete contact"
-                >
-                  🗑️
-                </button>
-              </div>
+              <button
+                className="delete-btn"
+                onClick={() => handleDeleteContact(contact._id)}
+                title="Delete contact"
+              >
+                🗑️
+              </button>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Send Invites Section */}
-      {filteredContacts.length > 0 && (
-        <div className="send-invites-section">
-          <h3>📧 Send Invites</h3>
-          <p>Invite selected contacts to join your next study</p>
-          <button
-            className="send-invites-btn"
-            onClick={() => handleSendInvites(filterGroup)}
-          >
-            Send Invites to {filterGroup} ({filteredContacts.length})
-          </button>
         </div>
       )}
     </div>

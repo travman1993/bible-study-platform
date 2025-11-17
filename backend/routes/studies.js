@@ -2,7 +2,6 @@
 const express = require('express');
 const Study = require('../models/Study');
 const User = require('../models/User');
-const Subscription = require('../models/Subscription');
 const { verifyToken, requireTeacher } = require('../middleware/auth');
 const crypto = require('crypto');
 
@@ -16,55 +15,49 @@ const generateJoinCode = () => {
 // CREATE STUDY (Teachers only)
 router.post('/', verifyToken, requireTeacher, async (req, res) => {
   try {
-    const { title, startTime, endTime, maxParticipants, group, topic, description } = req.body;
+    const { title, startTime, endTime, description, group, topic } = req.body;
 
     // Validate input
     if (!title) {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    // Check subscription (if not in trial)
-    const user = await User.findById(req.userId);
-    if (user.subscriptionStatus === 'cancelled' && user.trialEndsAt < new Date()) {
-      return res.status(403).json({ 
-        error: 'Active subscription required to create studies' 
-      });
-    }
+    console.log('Creating study:', { title, startTime });
 
     // Create study
     const study = new Study({
       title: title,
+      description: description || '',
+      topic: topic || '',
+      group: group || 'General',
       creatorId: req.userId,
       joinCode: generateJoinCode(),
       startTime: startTime ? new Date(startTime) : new Date(),
       endTime: endTime ? new Date(endTime) : null,
       status: 'scheduled',
-      group: group || 'General',
-      topic: topic || '',
-      description: description || '',
       participants: [{
         userId: req.userId,
         role: 'teacher',
         joinedAt: new Date()
       }],
       settings: {
-        maxParticipants: maxParticipants || 50,
+        maxParticipants: 50,
         bibleVersion: 'ESV',
         allowParticipantAudio: true,
         recordSession: true
       }
     });
 
-    // Save study
     await study.save();
+    console.log('Study saved:', study._id);
 
     // Add to user's created studies
+    const user = await User.findById(req.userId);
     user.createdStudies.push(study._id);
     await user.save();
+    console.log('User updated with study');
 
-    console.log('Study created:', study._id);
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       study: {
         _id: study._id,
@@ -78,16 +71,14 @@ router.post('/', verifyToken, requireTeacher, async (req, res) => {
     });
   } catch (err) {
     console.error('Study creation error:', err);
-    res.status(500).json({ error: 'Failed to create study', details: err.message });
+    return res.status(500).json({ error: 'Failed to create study', details: err.message });
   }
 });
 
-// GET ALL STUDIES (Only teacher's studies or participant's joined studies)
+// GET ALL STUDIES (Only teacher's studies)
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const user = await User.findById(req.userId)
-      .populate('createdStudies')
-      .populate('participatedStudies');
+    const user = await User.findById(req.userId).populate('createdStudies').populate('participatedStudies');
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -120,22 +111,20 @@ router.get('/', verifyToken, async (req, res) => {
 
     const allStudies = [...created, ...participated];
 
-    res.json({
+    return res.json({
       success: true,
       studies: allStudies
     });
   } catch (err) {
     console.error('Get studies error:', err);
-    res.status(500).json({ error: 'Failed to fetch studies', details: err.message });
+    return res.status(500).json({ error: 'Failed to fetch studies', details: err.message });
   }
 });
 
 // GET STUDY DETAILS
 router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const study = await Study.findById(req.params.id)
-      .populate('creatorId', 'name email')
-      .populate('participants.userId', 'name email');
+    const study = await Study.findById(req.params.id).populate('creatorId', 'name email');
 
     if (!study) {
       return res.status(404).json({ error: 'Study not found' });
@@ -143,13 +132,13 @@ router.get('/:id', verifyToken, async (req, res) => {
 
     // Check access
     const isCreator = study.creatorId._id.toString() === req.userId;
-    const isParticipant = study.participants?.some(p => p.userId?._id?.toString() === req.userId);
+    const isParticipant = study.participants?.some(p => p.userId?.toString() === req.userId);
 
     if (!isCreator && !isParticipant) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    res.json({
+    return res.json({
       success: true,
       study: {
         _id: study._id,
@@ -170,7 +159,7 @@ router.get('/:id', verifyToken, async (req, res) => {
     });
   } catch (err) {
     console.error('Get study error:', err);
-    res.status(500).json({ error: 'Failed to fetch study', details: err.message });
+    return res.status(500).json({ error: 'Failed to fetch study', details: err.message });
   }
 });
 
@@ -181,7 +170,7 @@ router.post('/:joinCode/join', verifyToken, async (req, res) => {
 
     const study = await Study.findOne({ joinCode });
     if (!study) {
-      return res.status(404).json({ error: 'Study not found. Invalid join code.' });
+      return res.status(404).json({ error: 'Study not found' });
     }
 
     // Check if already joined
@@ -214,7 +203,7 @@ router.post('/:joinCode/join', verifyToken, async (req, res) => {
       await user.save();
     }
 
-    res.json({
+    return res.json({
       success: true,
       study: {
         _id: study._id,
@@ -228,7 +217,7 @@ router.post('/:joinCode/join', verifyToken, async (req, res) => {
     });
   } catch (err) {
     console.error('Join study error:', err);
-    res.status(500).json({ error: 'Failed to join study', details: err.message });
+    return res.status(500).json({ error: 'Failed to join study', details: err.message });
   }
 });
 
@@ -254,13 +243,13 @@ router.put('/:id', verifyToken, requireTeacher, async (req, res) => {
 
     await study.save();
 
-    res.json({
+    return res.json({
       success: true,
       study: study
     });
   } catch (err) {
     console.error('Update study error:', err);
-    res.status(500).json({ error: 'Failed to update study', details: err.message });
+    return res.status(500).json({ error: 'Failed to update study', details: err.message });
   }
 });
 
@@ -286,13 +275,13 @@ router.post('/:id/highlights', verifyToken, async (req, res) => {
     study.highlights.push(highlight);
     await study.save();
 
-    res.json({
+    return res.json({
       success: true,
       highlight: highlight
     });
   } catch (err) {
     console.error('Add highlight error:', err);
-    res.status(500).json({ error: 'Failed to add highlight', details: err.message });
+    return res.status(500).json({ error: 'Failed to add highlight', details: err.message });
   }
 });
 
@@ -316,13 +305,13 @@ router.delete('/:id', verifyToken, requireTeacher, async (req, res) => {
     user.createdStudies = user.createdStudies.filter(s => s.toString() !== req.params.id);
     await user.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Study deleted'
     });
   } catch (err) {
     console.error('Delete study error:', err);
-    res.status(500).json({ error: 'Failed to delete study', details: err.message });
+    return res.status(500).json({ error: 'Failed to delete study', details: err.message });
   }
 });
 
