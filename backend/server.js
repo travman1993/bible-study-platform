@@ -1,12 +1,15 @@
-// Import libraries
+// backend/server.js - FIXED VERSION
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const errorHandler = require('./middleware/errorHandler');
-const logger = require('./utils/logger');
 const authRoutes = require('./routes/auth');
 const paymentRoutes = require('./routes/payments');
+const studiesRoutes = require('./routes/studies');
+const usersRoutes = require('./routes/users');
+const { validateHighlight } = require('./validators/highlight');
 
 require('dotenv').config();
 
@@ -31,22 +34,11 @@ const io = socketIo(server, {
   }
 });
 
-const validateHighlight = (data) => {
-    if (!data.studyId || typeof data.studyId !== 'string') throw new Error('Invalid studyId');
-    if (!data.text || data.text.length > 500) throw new Error('Invalid text');
-    if (!['yellow', 'green', 'blue', 'red'].includes(data.color)) throw new Error('Invalid color');
-  };
-
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-
-// backend/server.js
-const { verifyToken } = require('./middleware/auth');
-const { validateHighlight } = require('./validators/highlight');
-
-
+// Socket.IO Authentication Middleware
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication failed'));
@@ -60,6 +52,7 @@ io.use((socket, next) => {
     next(new Error('Invalid token'));
   }
 });
+
 // ============================================
 // BASIC ROUTES (Test to make sure it's working)
 // ============================================
@@ -71,6 +64,15 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'Server is healthy' });
 });
+
+// ============================================
+// API ROUTES
+// ============================================
+
+app.use('/api/auth', authRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/studies', studiesRoutes);
+app.use('/api/users', usersRoutes);
 
 // ============================================
 // SOCKET.IO - Real-time events
@@ -87,17 +89,22 @@ io.on('connection', (socket) => {
 
   // When teacher highlights text
   socket.on('highlight-text', (data) => {
-    const { error, value } = validateHighlight(data);
-    
-    if (error) {
-      return socket.emit('error', { 
-        message: 'Invalid highlight data',
-        details: error.details 
-      });
+    try {
+      const { error, value } = validateHighlight(data);
+      
+      if (error) {
+        return socket.emit('error', { 
+          message: 'Invalid highlight data',
+          details: error.details 
+        });
+      }
+      
+      // Process valid data
+      io.to(`study-${value.studyId}`).emit('highlight-updated', value);
+    } catch (err) {
+      console.error('Highlight error:', err);
+      socket.emit('error', { message: 'Failed to process highlight' });
     }
-    
-    // Process valid data
-    io.to(`study-${value.studyId}`).emit('highlight-updated', value);
   });
 
   // When someone disconnects
@@ -105,6 +112,12 @@ io.on('connection', (socket) => {
     console.log(`User disconnected: ${socket.id}`);
   });
 });
+
+// ============================================
+// ERROR HANDLING
+// ============================================
+
+app.use(errorHandler);
 
 // ============================================
 // START SERVER
@@ -116,6 +129,4 @@ server.listen(PORT, () => {
   console.log(`✅ Socket.IO ready for connections`);
 });
 
-app.use(errorHandler);
-app.use('/api/auth', authRoutes);
-app.use('/api/payments', paymentRoutes);
+module.exports = server;

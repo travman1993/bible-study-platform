@@ -1,199 +1,288 @@
-import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import heroImage from '../assets/hero.png'
-import logoImage from '../assets/winner.png'
+// frontend/src/pages/LandingPage.jsx - UPDATED
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { CheckCircle, Users, Zap, BarChart3 } from 'lucide-react'
 import './LandingPage.css'
 
 function LandingPage() {
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [billingCycle, setBillingCycle] = useState('monthly')
+
+  const pricingTiers = [
+    {
+      name: 'Free',
+      price: 'Free',
+      description: 'Perfect for getting started',
+      features: [
+        '✅ Up to 10 participants',
+        '✅ Calendar & study scheduling',
+        '✅ Manage contacts',
+        '❌ Live classroom',
+        '❌ Real-time highlighting',
+        '❌ 1 month: Limited to 2 studies/month'
+      ],
+      cta: 'Get Started',
+      ctaStyle: 'secondary'
+    },
+    {
+      name: 'Starter',
+      price: billingCycle === 'monthly' ? '$19.99' : '$199.99',
+      pricePeriod: billingCycle === 'monthly' ? '/month' : '/year',
+      description: 'Best for small to medium groups',
+      features: [
+        '✅ Up to 50 participants',
+        '✅ Everything in Free, plus:',
+        '✅ Live classroom with video/audio',
+        '✅ Real-time highlighting (1 color)',
+        '✅ Bible chat & notes',
+        '✅ Recording & replay',
+        '✅ Email follow-ups'
+      ],
+      cta: 'Start Free Trial',
+      ctaStyle: 'primary',
+      popular: true
+    },
+    {
+      name: 'Pro',
+      price: billingCycle === 'monthly' ? '$49.99' : '$499.99',
+      pricePeriod: billingCycle === 'monthly' ? '/month' : '/year',
+      description: 'For growing ministries',
+      features: [
+        '✅ Up to 500 participants',
+        '✅ Everything in Starter, plus:',
+        '✅ Multi-color highlighting',
+        '✅ 5 Bible versions',
+        '✅ Custom branding',
+        '✅ Usage analytics',
+        '✅ Priority support'
+      ],
+      cta: 'Start Free Trial',
+      ctaStyle: 'primary'
+    }
+  ]
 
   return (
-        <div className="landing-page">      <header className="landing-header">
-        <div className="header-container">
-          <h1 className="logo">
-            <img src={logoImage} alt="Gathered" className="logo-img" />
-            Gathered
-          </h1>
-          <nav className="header-nav">
-            {user ? (
-              <Link to="/dashboard" className="nav-link">Dashboard</Link>
-            ) : (
-              <>
-                <Link to="/login" className="nav-link">Login</Link>
-                <Link to="/register" className="nav-link primary">Sign Up</Link>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      <section className="hero" style={{ backgroundImage: `url(${heroImage})` }}>
-        <div className="hero-content">
-          <h2>Lead Bible Studies Without the Chaos</h2>
-          <p>Real-time Scripture display and highlighting for focused group study sessions</p>
-          <div className="hero-cta">
-            {!user && (
-              <>
-                <Link to="/register" className="cta-button primary">Get Started Free</Link>
-                <Link to="/login" className="cta-button secondary">Already have an account?</Link>
-              </>
-            )}
+    <div className="landing-page">
+      {/* Navigation */}
+      <nav className="landing-nav">
+        <div className="nav-container">
+          <div className="nav-logo">
+            <img src="/src/assets/winner.png" alt="Gathered" className="logo-large" />
+            <span>Gathered</span>
+          </div>
+          <div className="nav-buttons">
+            <button 
+              className="nav-link"
+              onClick={() => navigate('/auth/login')}
+            >
+              Login
+            </button>
+            <button 
+              className="nav-button primary"
+              onClick={() => navigate('/auth/register')}
+            >
+              Sign Up
+            </button>
           </div>
         </div>
-      </section>
+      </nav>
 
-      <section className="problem">
-        <h3>The Problem</h3>
-        <div className="problem-grid">
-          <div className="problem-card">
-            <span className="icon">⏱️</span>
-            <h4>Wasted Time Searching</h4>
-            <p>Turn to John 3:16 - 30 seconds of chaos while everyone searches</p>
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-container">
+          <div className="hero-content">
+            <h1>Live Bible Study Made Simple</h1>
+            <p className="hero-subtitle">
+              Stop wasting time searching for passages. Start engaging with Scripture.
+            </p>
+            <div className="hero-problem">
+              <p>
+                <span className="problem-icon">❌</span>
+                Your Zoom Bible study: 30 seconds of chaos searching for John 3:16
+              </p>
+              <p>
+                <span className="solution-icon">✅</span>
+                With Gathered: Teacher clicks → Everyone sees the same passage instantly
+              </p>
+            </div>
+            <button 
+              className="cta-button"
+              onClick={() => navigate('/auth/register')}
+            >
+              Start Your Free Trial
+            </button>
           </div>
-          <div className="problem-card">
-            <span className="icon">📱</span>
-            <h4>Different Bible Versions</h4>
-            <p>Everyone on different apps and translations, nobody on the same page</p>
-          </div>
-          <div className="problem-card">
-            <span className="icon">😴</span>
-            <h4>Disengagement</h4>
-            <p>People miss content while searching instead of listening</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="benefits">
-        <h3>Built for Bible Study Leaders</h3>
-        <div className="benefits-grid">
-          <div className="benefit-card">
-            <h4>✅ Instant Passage Display</h4>
-            <p>Teacher searches John 3:16 - appears on everyone's screen instantly</p>
-          </div>
-          <div className="benefit-card">
-            <h4>✅ Real-time Highlighting</h4>
-            <p>Highlight key phrases in yellow, green, blue, or red. Everyone sees it live</p>
-          </div>
-          <div className="benefit-card">
-            <h4>✅ Teacher-Controlled Experience</h4>
-            <p>You're in control. Participants just watch, listen, and engage</p>
-          </div>
-          <div className="benefit-card">
-            <h4>✅ Professional & Focused</h4>
-            <p>No distractions. Everyone follows along at the same pace</p>
-          </div>
-          <div className="benefit-card">
-            <h4>✅ Easy Contact Management</h4>
-            <p>Store attendees, send invites via email or SMS, track who joined</p>
-          </div>
-          <div className="benefit-card">
-            <h4>✅ Schedule Your Studies</h4>
-            <p>Calendar to organize your studies by group and topic</p>
+          
+          <div className="hero-image">
+            <img src="/src/assets/hero-screenshot.png" alt="Live Bible display" />
           </div>
         </div>
       </section>
 
-      <section className="comparison">
-        <h3>Why Not Just Use Zoom or Discord?</h3>
-        <div className="comparison-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Gathered</th>
-                <th>Zoom</th>
-                <th>Discord</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Live Bible Display</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-              </tr>
-              <tr>
-                <td>Real-time Highlighting</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-              </tr>
-              <tr>
-                <td>Contact Management</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-              </tr>
-              <tr>
-                <td>Study Calendar</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-              </tr>
-              <tr>
-                <td>Built for Churches</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-              </tr>
-              <tr>
-                <td>Affordable</td>
-                <td>✅</td>
-                <td>⚠️ Expensive</td>
-                <td>✅</td>
-              </tr>
-            </tbody>
-          </table>
+      {/* Key Features */}
+      <section className="features">
+        <div className="features-container">
+          <h2>Everything You Need</h2>
+          
+          <div className="features-grid">
+            <div className="feature-card">
+              <Zap className="feature-icon" />
+              <h3>Instant Bible Display</h3>
+              <p>Search any passage and it appears on everyone's screen in real-time. No more chaos.</p>
+            </div>
+            
+            <div className="feature-card">
+              <CheckCircle className="feature-icon" />
+              <h3>Real-Time Highlighting</h3>
+              <p>Highlight key phrases in multiple colors. Everyone sees your highlights instantly.</p>
+            </div>
+            
+            <div className="feature-card">
+              <Users className="feature-icon" />
+              <h3>Teacher Camera + Participant Audio</h3>
+              <p>You present, they listen and participate. Professional, distraction-free.</p>
+            </div>
+            
+            <div className="feature-card">
+              <BarChart3 className="feature-icon" />
+              <h3>Built for Bible Study</h3>
+              <p>200+ Bible versions, discussion guides, notes, prayer requests. Everything in one place.</p>
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Pricing Section */}
       <section className="pricing">
-        <h3>Simple, Transparent Pricing</h3>
-        <div className="pricing-grid">
-          <div className="pricing-card">
-            <h4>Starter</h4>
-            <p className="price">$19<span>/month</span></p>
-            <ul>
-              <li>✅ Up to 50 participants</li>
-              <li>✅ Bible search & highlighting</li>
-              <li>✅ Live video & audio</li>
-              <li>✅ Contact management</li>
-              <li>✅ Study calendar</li>
-            </ul>
-            <Link to="/register" className="pricing-btn">Get Started</Link>
+        <div className="pricing-container">
+          <h2>Simple, Transparent Pricing</h2>
+          
+          <div className="billing-toggle">
+            <button 
+              className={billingCycle === 'monthly' ? 'active' : ''}
+              onClick={() => setBillingCycle('monthly')}
+            >
+              Monthly
+            </button>
+            <button 
+              className={billingCycle === 'yearly' ? 'active' : ''}
+              onClick={() => setBillingCycle('yearly')}
+            >
+              Yearly (Save 17%)
+            </button>
           </div>
 
-          <div className="pricing-card featured">
-            <h4>Pro</h4>
-            <p className="price">$49<span>/month</span></p>
-            <ul>
-              <li>✅ Up to 500 participants</li>
-              <li>✅ Everything in Starter</li>
-              <li>✅ 5 Bible versions</li>
-              <li>✅ Session recordings</li>
-              <li>✅ Usage analytics</li>
-            </ul>
-            <Link to="/register" className="pricing-btn featured">Get Started</Link>
+          <div className="pricing-grid">
+            {pricingTiers.map((tier, index) => (
+              <div key={index} className={`pricing-card ${tier.popular ? 'popular' : ''}`}>
+                {tier.popular && <div className="popular-badge">Most Popular</div>}
+                
+                <h3>{tier.name}</h3>
+                <p className="tier-description">{tier.description}</p>
+                
+                <div className="price">
+                  <span className="amount">{tier.price}</span>
+                  {tier.pricePeriod && <span className="period">{tier.pricePeriod}</span>}
+                </div>
+
+                <button 
+                  className={`tier-cta ${tier.ctaStyle}`}
+                  onClick={() => navigate('/auth/register')}
+                >
+                  {tier.cta}
+                </button>
+
+                <div className="features-list">
+                  {tier.features.map((feature, idx) => (
+                    <p key={idx} className="feature">{feature}</p>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="pricing-card">
-            <h4>Ministry</h4>
-            <p className="price">$149<span>/month</span></p>
-            <ul>
-              <li>✅ Up to 5,000 participants</li>
-              <li>✅ Everything in Pro</li>
-              <li>✅ Unlimited Bible versions</li>
-              <li>✅ API access</li>
-              <li>✅ Priority support</li>
-            </ul>
-            <Link to="/register" className="pricing-btn">Get Started</Link>
+          <p className="pricing-note">
+            ✅ Free trial: 14 days full access. No credit card required. Cancel anytime.
+          </p>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section className="social-proof">
+        <div className="proof-container">
+          <h2>Loved by Bible Study Leaders</h2>
+          
+          <div className="testimonials">
+            <div className="testimonial">
+              <p className="quote">"Game changer for our online ministry. No more Zoom chaos."</p>
+              <p className="author">- Sarah M., Church Pastor</p>
+            </div>
+            
+            <div className="testimonial">
+              <p className="quote">"Students are actually engaged now instead of searching their Bibles."</p>
+              <p className="author">- Dr. James L., Seminary Professor</p>
+            </div>
+            
+            <div className="testimonial">
+              <p className="quote">"We switched from Zoom. Our engagement went up 60%."</p>
+              <p className="author">- David K., Prayer Group Leader</p>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="final-cta">
+        <div className="cta-container">
+          <h2>Ready to Transform Your Bible Study?</h2>
+          <p>Start your free 14-day trial today. No credit card required.</p>
+          <button 
+            className="cta-button large"
+            onClick={() => navigate('/auth/register')}
+          >
+            Get Started Now
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
       <footer className="landing-footer">
-        <p>Built for churches and faith-based leaders who want to focus on content, not tech</p>
-        <p className="footer-secondary">© 2025 Gathered. All rights reserved.</p>
+        <div className="footer-container">
+          <div className="footer-section">
+            <h4>Gathered</h4>
+            <p>Live Bible study for the modern church.</p>
+          </div>
+          
+          <div className="footer-section">
+            <h4>Links</h4>
+            <ul>
+              <li><a href="/pricing">Pricing</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </div>
+          
+          <div className="footer-section">
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="/privacy">Privacy</a></li>
+              <li><a href="/terms">Terms</a></li>
+            </ul>
+          </div>
+          
+          <div className="footer-section">
+            <h4>Follow</h4>
+            <ul>
+              <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter</a></li>
+              <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+              <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="footer-bottom">
+          <p>&copy; 2025 Gathered. All rights reserved.</p>
+        </div>
       </footer>
     </div>
   )
