@@ -1,4 +1,4 @@
-// frontend/src/pages/LandingPage.jsx - UPDATED
+// frontend/src/pages/LandingPage.jsx - FIXED VERSION
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Users, Zap, BarChart3 } from 'lucide-react'
@@ -7,6 +7,11 @@ import './LandingPage.css'
 function LandingPage() {
   const navigate = useNavigate()
   const [billingCycle, setBillingCycle] = useState('monthly')
+
+  // Button handlers
+  const handleLogin = () => navigate('/login')
+  const handleSignUp = () => navigate('/register')
+  const handleGetStarted = () => navigate('/register')
 
   const pricingTiers = [
     {
@@ -19,7 +24,7 @@ function LandingPage() {
         '✅ Manage contacts',
         '❌ Live classroom',
         '❌ Real-time highlighting',
-        '❌ 1 month: Limited to 2 studies/month'
+        '❌ Limited to 2 studies/month'
       ],
       cta: 'Get Started',
       ctaStyle: 'secondary'
@@ -67,19 +72,18 @@ function LandingPage() {
       <nav className="landing-nav">
         <div className="nav-container">
           <div className="nav-logo">
-            <img src="/src/assets/winner.png" alt="Gathered" className="logo-large" />
-            <span>Gathered</span>
+            <span><img src="./src/assets/winner.png" /> Gathered</span>
           </div>
           <div className="nav-buttons">
             <button 
               className="nav-link"
-              onClick={() => navigate('/auth/login')}
+              onClick={handleLogin}
             >
               Login
             </button>
             <button 
               className="nav-button primary"
-              onClick={() => navigate('/auth/register')}
+              onClick={handleSignUp}
             >
               Sign Up
             </button>
@@ -107,14 +111,16 @@ function LandingPage() {
             </div>
             <button 
               className="cta-button"
-              onClick={() => navigate('/auth/register')}
+              onClick={handleGetStarted}
             >
               Start Your Free Trial
             </button>
           </div>
           
           <div className="hero-image">
-            <img src="/src/assets/hero-screenshot.png" alt="Live Bible display" />
+            <div className="hero-image-placeholder">
+              <img src="./src/assets/hero.png" alt="Live Bible Study Interface" />
+            </div>
           </div>
         </div>
       </section>
@@ -187,7 +193,7 @@ function LandingPage() {
 
                 <button 
                   className={`tier-cta ${tier.ctaStyle}`}
-                  onClick={() => navigate('/auth/register')}
+                  onClick={handleGetStarted}
                 >
                   {tier.cta}
                 </button>
@@ -238,7 +244,7 @@ function LandingPage() {
           <p>Start your free 14-day trial today. No credit card required.</p>
           <button 
             className="cta-button large"
-            onClick={() => navigate('/auth/register')}
+            onClick={handleGetStarted}
           >
             Get Started Now
           </button>
@@ -256,17 +262,17 @@ function LandingPage() {
           <div className="footer-section">
             <h4>Links</h4>
             <ul>
-              <li><a href="/pricing">Pricing</a></li>
-              <li><a href="/about">About</a></li>
-              <li><a href="/contact">Contact</a></li>
+              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
             </ul>
           </div>
           
           <div className="footer-section">
             <h4>Legal</h4>
             <ul>
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/terms">Terms</a></li>
+              <li><a href="#privacy">Privacy</a></li>
+              <li><a href="#terms">Terms</a></li>
             </ul>
           </div>
           
